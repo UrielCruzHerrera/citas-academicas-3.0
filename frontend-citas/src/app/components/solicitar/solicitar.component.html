@@ -1,0 +1,50 @@
+<section class="solicitar">
+  <h2>Solicitar una cita</h2>
+
+  <div *ngIf="cargando" class="estado">Cargando datos...</div>
+
+  <div *ngIf="error" class="error" role="alert">{{ error }}</div>
+  <div *ngIf="exito" class="exito" role="status">{{ exito }}</div>
+
+  <form (ngSubmit)="enviar()" *ngIf="!cargando">
+    <label for="horario">Horario disponible:</label>
+    <select
+      id="horario"
+      name="horario"
+      [(ngModel)]="idDisponibilidadSeleccionada"
+      required>
+      <option [ngValue]="null">-- Selecciona un horario --</option>
+      <option *ngFor="let d of disponibilidades" [ngValue]="d.id">
+        {{ d.asesor }} — {{ d.fecha }} {{ d.horaInicio }}-{{ d.horaFin }}
+      </option>
+    </select>
+
+    <label for="motivo">Motivo:</label>
+    <select
+      id="motivo"
+      name="motivo"
+      [(ngModel)]="idMotivoSeleccionado"
+      required>
+      <option [ngValue]="null">-- Selecciona un motivo --</option>
+      <option *ngFor="let m of motivos" [ngValue]="m.id">
+        {{ m.nombre }}
+      </option>
+    </select>
+
+    <label for="observaciones">Observaciones (opcional):</label>
+    <textarea
+      id="observaciones"
+      name="observaciones"
+      [(ngModel)]="observaciones"
+      maxlength="255"
+      rows="3"></textarea>
+
+    <button type="submit" [disabled]="enviando">
+      {{ enviando ? 'Enviando...' : 'Solicitar cita' }}
+    </button>
+  </form>
+
+  <div *ngIf="!cargando && disponibilidades.length === 0 && !error" class="estado">
+    No hay horarios disponibles por ahora.
+  </div>
+</section>

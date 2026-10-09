@@ -1,0 +1,48 @@
+<section class="mis-citas">
+  <h2>Mis citas</h2>
+
+  <div *ngIf="cargando" class="estado">Cargando citas...</div>
+
+  <div *ngIf="error" class="error" role="alert">{{ error }}</div>
+  <div *ngIf="exito" class="exito" role="status">{{ exito }}</div>
+
+  <table *ngIf="!cargando && citas.length > 0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Asesor</th>
+        <th>Fecha/Hora</th>
+        <th>Motivo</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of citas">
+        <td>{{ c.id }}</td>
+        <td>{{ c.asesor }}</td>
+        <td>{{ c.fechaHora }}</td>
+        <td>{{ c.motivo }}</td>
+        <td>
+          <span class="badge" [ngClass]="'estado-' + c.estado.toLowerCase()">
+            {{ c.estado }}
+          </span>
+        </td>
+        <td>
+          <button
+            *ngIf="esCancelable(c)"
+            (click)="cancelar(c.id)"
+            class="btn-cancelar">
+            Cancelar
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!cargando && citas.length === 0" class="estado">
+    No tienes citas registradas.
+  </div>
+
+  <button (click)="cargar()" class="btn-recargar">Recargar</button>
+</section>

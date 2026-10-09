@@ -1,0 +1,33 @@
+.header {
+  background: #1a4d8f;
+  color: white;
+  padding: 1rem 2rem;
+  font-family: system-ui, sans-serif;
+}
+
+.header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+}
+
+nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+nav a:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+nav a.activo {
+  background: rgba(255,255,255,0.25);
+  font-weight: 600;
+}

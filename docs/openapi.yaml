@@ -1,0 +1,284 @@
+openapi: 3.0.3
+info:
+  title: API Citas Académicas — PR02
+  version: 1.0.0
+  description: |
+    Contrato REST para el sistema de citas académicas del proyecto PR02.
+    Implementación: Spring Boot 2.7.18 sobre Java 11 + PostgreSQL 16.
+  contact:
+    name: Equipo PR02
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor local de desarrollo
+
+tags:
+  - name: disponibilidades
+    description: Bloques horarios ofrecidos por asesores
+  - name: citas
+    description: Solicitudes, consulta y cancelación de citas
+  - name: motivos
+    description: Catálogo de motivos de asesoría
+
+paths:
+  /disponibilidades:
+    get:
+      tags: [disponibilidades]
+      summary: Lista bloques horarios disponibles
+      operationId: listarDisponibilidades
+      responses:
+        '200':
+          description: Lista de bloques disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DisponibilidadDTO'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /disponibilidades/{id}:
+    get:
+      tags: [disponibilidades]
+      summary: Consulta un bloque horario por ID
+      operationId: obtenerDisponibilidad
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Bloque encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisponibilidadDTO'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+
+  /citas:
+    get:
+      tags: [citas]
+      summary: Lista citas del estudiante actual
+      operationId: listarCitas
+      parameters:
+        - name: idEstudiante
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Citas del estudiante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CitaResponseDTO'
+    post:
+      tags: [citas]
+      summary: Crea una nueva cita
+      operationId: crearCita
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CitaRequestDTO'
+      responses:
+        '201':
+          description: Cita creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitaResponseDTO'
+        '400':
+          $ref: '#/components/responses/SolicitudInvalida'
+        '409':
+          description: Conflicto — el horario ya fue reservado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+              example:
+                timestamp: "2026-10-05T14:30:00"
+                status: 409
+                error: "Conflict"
+                message: "El horario seleccionado ya fue reservado."
+                path: "/api/citas"
+
+  /citas/{id}:
+    get:
+      tags: [citas]
+      summary: Consulta una cita por ID
+      operationId: obtenerCita
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Cita encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitaResponseDTO'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+    delete:
+      tags: [citas]
+      summary: Cancela una cita (cambia estado a CANCELADA y libera el bloque)
+      operationId: cancelarCita
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - name: idUsuario
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '204':
+          description: Cita cancelada correctamente
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '409':
+          description: La cita no está en un estado cancelable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDTO'
+
+  /motivos:
+    get:
+      tags: [motivos]
+      summary: Lista el catálogo de motivos activos
+      operationId: listarMotivos
+      responses:
+        '200':
+          description: Lista de motivos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MotivoDTO'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+
+  responses:
+    NoEncontrado:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+    SolicitudInvalida:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+    ErrorInterno:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+
+  schemas:
+    DisponibilidadDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        asesor:
+          type: string
+          example: "Luis Asesor"
+        fecha:
+          type: string
+          format: date
+          example: "2026-10-15"
+        horaInicio:
+          type: string
+          format: time
+          example: "09:00:00"
+        horaFin:
+          type: string
+          format: time
+          example: "09:30:00"
+        estado:
+          type: string
+          enum: [DISPONIBLE, OCUPADO, BLOQUEADO]
+
+    MotivoDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Asesoría de proyecto"
+        descripcion:
+          type: string
+          example: "Revisión de avance de proyecto integrador"
+
+    CitaRequestDTO:
+      type: object
+      required: [idEstudiante, idDisponibilidad, idMotivo]
+      properties:
+        idEstudiante:
+          type: integer
+          example: 1
+        idDisponibilidad:
+          type: integer
+          example: 1
+        idMotivo:
+          type: integer
+          example: 1
+        observaciones:
+          type: string
+          maxLength: 255
+
+    CitaResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        estudiante:
+          type: string
+        asesor:
+          type: string
+        fechaHora:
+          type: string
+        motivo:
+          type: string
+        estado:
+          type: string
+          enum: [SOLICITADA, CONFIRMADA, CANCELADA, ATENDIDA]
+        fechaSolicitud:
+          type: string
+          format: date-time
+
+    ErrorDTO:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
