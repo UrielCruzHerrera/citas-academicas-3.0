@@ -22,3 +22,16 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Docker
+.env
+*.env.local
+
+# Backend
+backend-citas/target/
+backend-citas/*.jar
+
+# Frontend
+frontend-citas/node_modules/
+frontend-citas/dist/
+frontend-citas/.angular/

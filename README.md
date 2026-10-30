@@ -174,3 +174,63 @@ psql -U postgres -d citas_academicas -f sql/03_reset_disponibilidad.sql
 | [Josue Sánchez Valente] | Revisión del contrato API |
 
 Detalle en `docs/contribucion-individual.md`.
+
+---
+
+## Ejecución con Docker (RECOMENDADO)
+
+### Requisitos
+- Docker 24+
+- Docker Compose 2.20+
+
+### Levantar todo el sistema
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+
+
+### Espera ~30 segundos. El sistema estará disponible en:
+
+    Frontend: http://localhost:4200
+
+    Backend directo: http://localhost:8080/api/health
+
+## DETENER
+docker compose down          # conserva datos
+docker compose down -v       # borra datos
+
+## ARQUITECTURA
+[Cliente :4200] → [Nginx+Angular] → [Spring Boot :8080] → [PostgreSQL :5432 interno]
+
+
+## PRUEBAS
+Backend (JUnit + Mockito)
+bash
+
+cd backend-citas
+./mvnw test
+
+
+Frontend (Jasmine + Karma)
+bash
+
+cd frontend-citas
+npm test -- --watch=false --browsers=ChromeHeadless
+
+
+## Seguridad simulada (opcional)
+
+Activar autenticación por API Key:
+bash
+
+API_SECURITY_ENABLED=true docker compose up -d backend
+
+Endpoints requieren header X-API-Key: demo-key-2026, excepto /api/health.
+bash
+
+# 401 sin key
+curl http://localhost:8080/api/disponibilidades
+
+# 200 con key
+curl http://localhost:8080/api/disponibilidades -H "X-API-Key: demo-key-2026"
